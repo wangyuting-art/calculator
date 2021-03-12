@@ -1,0 +1,37 @@
+.calculator{
+    width: 340px;
+    margin: 50px auto;
+}
+.calculator input{
+    box-sizing: border-box;
+    border-radius: 2%;
+    padding: 0 6px;
+    width: 340px;
+    height: 60px;
+    font-size: 32px;
+    color: rgb(48, 42, 42);
+    background-color: #ccc;
+    text-align: right;
+    outline: none;
+    text-indent: -200px;
+}
+::-webkit-input-placeholder{
+    color: rgb(48, 42, 42);
+}
+.calculator .container{
+    display: grid;
+    grid-template-rows: repeat(5,65px);
+    grid-template-columns: repeat(4,85px);
+}
+.NumBtn{
+    color: rgb(48, 42, 42);
+    text-align: center;
+    border:1px solid black;
+    outline :none;
+    font-size: 33px;
+    border-radius: 10%;
+    background-color: #ccc;
+}
+.NumBtn-17{
+    grid-column-start:span 2
+}

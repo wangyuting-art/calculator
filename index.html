@@ -1,0 +1,179 @@
+<!--ref.html-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>click event</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <!-- 通过 cdn 方式引入 vue.js 的最新版本 -->
+    <script src="https://labfile.oss.aliyuncs.com/courses/2495/vue.global.js"></script>
+    <script src="calculator.js"></script>
+    <link href="calculator.css" rel="stylesheet" type="text/css">
+  </head>
+  <body>
+    <div id="app" class="calculator">
+      <input type="text" v-model="inputValue" placeholder="0" disabled="disabled" ref="one">
+      <div class="container" @click="handleBtnClick">
+        <button class="NumBtn NumBtn-1">AC</button>
+        <button class="NumBtn NumBtn-2">C</button>
+        <button class="NumBtn NumBtn-3">B</button>
+        <button class="NumBtn NumBtn-4">/</button>
+        <button class="NumBtn NumBtn-5">7</button>
+        <button class="NumBtn NumBtn-6">8</button>
+        <button class="NumBtn NumBtn-7">9</button>
+        <button class="NumBtn NumBtn-8">*</button>
+        <button class="NumBtn NumBtn-9">4</button>
+        <button class="NumBtn NumBtn-10">5</button>
+        <button class="NumBtn NumBtn-11">6</button>
+        <button class="NumBtn NumBtn-12">-</button>
+        <button class="NumBtn NumBtn-13">1</button>
+        <button class="NumBtn NumBtn-14">2</button>
+        <button class="NumBtn NumBtn-15">3</button>
+        <button class="NumBtn NumBtn-16">+</button>
+        <button class="NumBtn NumBtn-17">0</button>
+        <button class="NumBtn NumBtn-18">.</button>
+        <button class="NumBtn NumBtn-19">=</button>
+      </div>
+    </div>
+
+    <script>
+      const { createApp, ref,reactive } = Vue;
+      const App = {
+        setup() {
+          const inputValue = ref("");
+          const ClickNumberContent = ref("");
+          const record = ref(false); // 数true，符号false
+          const lastBtn = ref([]); // 定义数组,存储record
+          const flag = ref(false);//计算了是true，没计算是false
+          const result = ref([]); // 定义数组,存储f第一次计算的结果
+          const potFlag = ref(false);
+          const handleBtnClick = e => {
+            let clickNumber = e.target.innerHTML;
+            if (!isNaN(clickNumber)) {//是数字
+              if(ClickNumberContent.value[ClickNumberContent.value.length-1] === '0' && !potFlag.value){
+                console.log('qqq');
+                ClickNumberContent.value = ClickNumberContent.value.substring(0, ClickNumberContent.value.length - 1);
+              }
+              ClickNumberContent.value += clickNumber;             
+              inputValue.value = ClickNumberContent.value;//显示在屏幕中
+              console.log('ok', ClickNumberContent.value);
+              record.value = true;
+            } else if (clickNumber === '+' || clickNumber === '-' || clickNumber === '*' || clickNumber === '/') {   
+              potFlag.value = false;         
+              if (!ClickNumberContent.value) {  // 如果为空，即应该输入数字但没有输入
+                ClickNumberContent.value = '0';
+              } else if (!lastBtn.value[lastBtn.value.length - 1]) {  // 如果是false，即应该输入数字，再次输入字符时会覆盖
+                ClickNumberContent.value = ClickNumberContent.value.substring(0, ClickNumberContent.value.length - 1)
+              }
+              ClickNumberContent.value += clickNumber;             
+              inputValue.value = ClickNumberContent.value;  // 显示在屏幕中
+              console.log(ClickNumberContent.value);
+              record.value = false;
+            }
+            if (clickNumber !== 'C' && clickNumber !== 'AC') {
+              lastBtn.value.push(record.value);  // 数组输入
+              console.log(lastBtn.value);
+            }
+            // 小数点计算
+            if (clickNumber === '.') {
+              if (ClickNumberContent.value) {  // 如果前面不为空
+                if (!isNaN(ClickNumberContent.value) && ClickNumberContent.value.indexOf('.') === -1) {  // 如果前面都是数，且没有小数点
+                  ClickNumberContent.value += clickNumber;
+                  potFlag.value = true;
+                  inputValue.value = ClickNumberContent.value;
+                }
+                else if (isNaN(ClickNumberContent.value) && !lastBtn.value[lastBtn.value.length - 2]) {  // 如果前面不全是数，且前一位是操作符
+                  ClickNumberContent.value += '0.';
+                  potFlag.value = true;
+                  inputValue.value = ClickNumberContent.value;
+                  console.log("这里")
+                }
+                else if (isNaN(ClickNumberContent.value) && lastBtn.value[lastBtn.value.length - 2]) {  // 如果前面不全是数，且前一位是操作数
+                  if (!potFlag.value) {
+                    ClickNumberContent.value += clickNumber;
+                    potFlag.value = true;
+                    inputValue.value = ClickNumberContent.value;
+                  }
+                }
+                // else {
+                //   ClickNumberContent.value+='0.';
+                //   inputValue.value=ClickNumberContent.value;
+                // }
+              } else {  // 如果前面为空
+                ClickNumberContent.value+='0.';
+                potFlag.value = true;
+                inputValue.value=ClickNumberContent.value;
+              }
+            }
+
+            // 求值
+            if (clickNumber === "=") {
+              potFlag.value = false;              
+              inputValue.value = calculate(ClickNumberContent.value) + "";  // number to string
+              console.log("这里" + inputValue.value);
+              result.value.push(inputValue.value);   
+              console.log("这里结果"+result.value);
+              flag.value = true;
+              lastBtn.value = lastBtn.value.splice(lastBtn.value.length - 1, 1);  // 直接写true，会造成不是数组，push报错
+            }
+            // result.value = []
+            // 继续运算
+            if (flag.value) {
+              if (clickNumber === '+' || clickNumber === '-' || clickNumber === '*' || clickNumber === '/'){                
+                ClickNumberContent.value = result.value[result.value.length-1] + clickNumber;
+                inputValue.value = ClickNumberContent.value;
+                flag.value = false;
+              } else if (!isNaN(clickNumber)) {  // 如果再次输入是数字
+                ClickNumberContent.value = clickNumber;
+                inputValue.value = ClickNumberContent.value;
+                console.log(ClickNumberContent.value)
+                flag.value = false;
+              } else if (clickNumber === '.') {  // 如果再次输入是小数点
+                ClickNumberContent.value = "0.";
+                inputValue.value = ClickNumberContent.value;
+                flag.value = false;
+              }
+            }
+            
+            // 清空
+            if (clickNumber === 'AC'){
+              potFlag.value = false;
+              inputValue.value = "";
+              ClickNumberContent.value = "";
+              lastBtn.value = [];
+              result.value = [];
+              flag.value = [];
+            }
+            if (clickNumber === 'C') {
+              potFlag.value = false;
+              ClickNumberContent.value = ClickNumberContent.value.substring(0, ClickNumberContent.value.length - 1);  // 截取字符串，从0索引开始
+              console.log(111, lastBtn.value);
+              if (lastBtn.value.length > 0) {
+                lastBtn.value.pop();
+              }
+              console.log(222, lastBtn.value);
+              inputValue.value = ClickNumberContent.value;
+            }
+
+            // 二进制转换
+            if (clickNumber === 'B') {
+              inputValue.value = calculate(ClickNumberContent.value).toString(2);
+
+            }
+            
+          };
+          
+          return {
+            inputValue,
+            ClickNumberContent,
+            record,
+            lastBtn,
+            handleBtnClick
+          };
+        },
+      };
+      createApp(App).mount('#app');
+    </script>
+  </body>
+</html>
